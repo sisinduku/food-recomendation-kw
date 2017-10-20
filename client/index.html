@@ -13,6 +13,7 @@
     </style>
   </head>
   <body>
+    <h1 class="ui center aligned header">Restar</h1>
     <div class="ui menu">
       <div class="item">
         <div class="ui primary button">Home</div>
@@ -25,46 +26,13 @@
       </div>
     </div>
     <div class="container">
-      <h1 class="ui center aligned header">tess</h1>
       <div class="ui two column very relaxed grid">
       <div class="column">
         <div class="ui piled segments">
           <div id="map_canvas" style=" height: 500px;"></div>
         </div>
       </div>
-      <div class="column">
-        <div class="ui piled segments">
-          <div class="ui segment">
-            <p>Nama Restaurant</p>
-          </div>
-          <div class="ui segments">
-            <div class="ui segment">
-              <p>Jenis Restaurant</p>
-            </div>
-            <div class="ui segment">
-              <p>Alamat</p>
-            </div>
-            <div class="ui segment">
-              <p>Nomor Telpon</p>
-            </div>
-          </div>
-        </div>
-        <div class="ui piled segments">
-          <div class="ui segment">
-            <p>Nama Restaurant</p>
-          </div>
-          <div class="ui segments">
-            <div class="ui segment">
-              <p>Jenis Restaurant</p>
-            </div>
-            <div class="ui segment">
-              <p>Alamat</p>
-            </div>
-            <div class="ui segment">
-              <p>Nomor Telpon</p>
-            </div>
-          </div>
-        </div>
+      <div class="column" id="list-restaurant">
       </div>
     </div>
   </body>
@@ -92,14 +60,13 @@
       });
 
       google.maps.event.addListener(marker, 'dragend', function(event) {
-        document.getElementById("lat").value = event.latLng.lat();
-        document.getElementById("long").value = event.latLng.lng();
+
+        marker.setPosition(event.latLng);
         sendLocation(event.latLng.lat(),event.latLng.lng())
       });
 
       google.maps.event.addListener(map, 'click', function(event) {
-        document.getElementById("lat").value = event.latLng.lat();
-        document.getElementById("long").value = event.latLng.lng();
+
         marker.setPosition(event.latLng);
         sendLocation(event.latLng.lat(),event.latLng.lng())
       });
@@ -108,7 +75,29 @@
 
     function sendLocation(lat,lng){
       // alert('lat='+lat+' lng='+lng)
-      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng} )
+      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng}, function(data){
+        data.restaurants.forEach(restaurant => {
+          $("#list-restaurant").append(`
+            <div class="ui piled segments">
+              <div class="ui segment">
+                <h2>${restaurant.restaurant.name}</h2>
+              </div>
+              <div class="ui segments">
+                <div class="ui segment">
+                  <p>${restaurant.restaurant.cuisines}</p>
+                </div>
+                <div class="ui segment">
+                  <p>Location: ${restaurant.restaurant.location.address}</p>
+                </div>
+                <div class="ui segment">
+                  <p>Cost for two: ${restaurant.restaurant.average_cost_for_two}</p>
+                </div>
+              </div>
+            </div>
+            `);
+        })
+        console.log(data);
+      })
     }
   </script>
 </html>
