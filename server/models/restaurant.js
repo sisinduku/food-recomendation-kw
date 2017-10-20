@@ -15,7 +15,7 @@ class Restaurant {
       sort: "real_distance", //choose any one out of these available choices
       order: "asc" //	used with 'sort' parameter to define ascending(asc )/ descending(desc)
     }, function(err, result) {
-      if (!err) {
+      if (!err && req.body.token!='') {
         console.log(process.env.ZOMATOTOKEN);
         res.status(200).json(JSON.parse(result));
       } else {
