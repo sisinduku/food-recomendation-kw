@@ -14,6 +14,11 @@
   </head>
   <body>
     <h1 class="ui center aligned header">Restar</h1>
+    <div id="fb-root"></div>
+    <div id="login-btn" class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with" data-show-faces="false" data-use-continue-as="true" scope="public_profile,email" onlogin="checkLoginState();"></div>
+
+    <button class="ui facebook button" type="button" id="logout-btn" style="display: none" >Logout</button>
+    <div id="status">
     <div class="ui menu">
       <div class="item">
         <div class="ui primary button">Home</div>
@@ -41,7 +46,77 @@
     integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
     crossorigin="anonymous"></script>
   <script src="semantic/dist/semantic.min.js"></script>
-  <script type="text/javascript">
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <script>
+
+    function statusChangeCallback(response) {
+      console.log('statusChangeCallback');
+      console.log(response);
+      if (response.status === 'connected') {
+        // Logged into your app and Facebook.
+        axios.post('http://localhost:3000/api/login', {
+          authToken: response.authResponse.accessToken,
+          userId: response.authResponse.userID
+        })
+        .then(function (response) {
+          localStorage.setItem('token', response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+        testAPI();
+        $("#login-btn").hide();
+        $("#logout-btn").show();
+      } else {
+        // The person is not logged into your app or we are unable to tell.
+        document.getElementById('status').innerHTML = 'Please log ' +
+          'into this app.';
+      }
+    }
+
+    function checkLoginState() {
+      FB.getLoginStatus(function(response) {
+        statusChangeCallback(response);
+      });
+    }
+    $("#logout-btn").click(function(){
+      // hapus local storage
+      localStorage.removeItem('token');
+      FB.logout();
+      $(this).hide();
+      $("#login-btn").show();
+    })
+
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId      : 127811911272909,
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v2.8'
+      });
+      FB.AppEvents.logPageView();
+    };
+
+    // Load the SDK asynchronously
+    (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/id_ID/sdk.js#xfbml=1&version=v2.10&appId=127811911272909";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    // Here we run a very simple test of the Graph API after login is
+    // successful.  See statusChangeCallback() for when this call is made.
+    function testAPI() {
+      console.log('Welcome!  Fetching your information.... ');
+      FB.api('/me', function(response) {
+        console.log('Successful login for: ' + response.name);
+        document.getElementById('status').innerHTML =
+          'Thanks for logging in, ' + response.name + '!';
+      });
+    }  
     function initialize() {
       // var myLatlng = new google.maps.LatLng(40.713956, -74.006653);
       var myLatlng = new google.maps.LatLng(-6.212097566030472, 106.84478759765625);
