@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <title></title>
     <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.min.css">
-    <script src="https://maps.googleapis.com/maps/api/js"></script>
-    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
     <style>
       body{
         padding: 3em;
@@ -13,6 +12,7 @@
     </style>
   </head>
   <body>
+    <div id="modal-container"></div>
     <h1 class="ui center aligned header">Restar</h1>
     <div id="status">
     <div class="ui menu">
@@ -44,6 +44,7 @@
     crossorigin="anonymous"></script>
   <script src="semantic/dist/semantic.min.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js"></script>
 
   <script>
     $(document).ready(function(){
@@ -52,6 +53,63 @@
       } else {
         $("#main-container").hide();
       }
+    });
+    $(document).on( "click", ".btn-detail", function(event){
+      // alert(event.target.id);
+      $.post("http://localhost:3000/api/restaurant/detail_restaurant", {
+        resId: event.target.id
+      }, function(response) {
+        console.log(response);
+        $("#modal-container").empty();
+        $("#modal-container").append(`
+          <div class="ui modal" id="${event.target.id}">
+            <i class="close icon"></i>
+            <div class="header">
+              Restaurant Detail
+            </div>
+            <div class="image content">
+              <div class="ui medium image" style=" height: 300px;" id="map_${event.target.id}"></div>
+              <div class="description">
+                <div class="ui header">${response.name}</div>
+                  <div class="ui small image">
+                    <img src="${response.thumb}">
+                  </div>
+                  <div class="ui list">
+                    <div class="item">
+                      <i class="marker icon"></i>
+                      <div class="content">
+                        ${response.location.address}
+                      </div>
+                    </div>
+                    <div class="item">
+                      <i class="money icon"></i>
+                      <div class="content">
+                        ${response.currency} ${response.average_cost_for_two}
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        `)
+        let myLatlngmini = new google.maps.LatLng(response.location.latitude, response.location.longitude);
+        let myOptionsmini = {
+          zoom: 8,
+          center: myLatlngmini,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        let mapmini = new google.maps.Map(document.getElementById("map_"+event.target.id), myOptionsmini);
+        console.log(myLatlngmini);
+        let markermini = new google.maps.Marker({
+          draggable: false,
+          position: myLatlngmini,
+          map: mapmini,
+          title: response.name
+        });
+
+        $('#' + event.target.id)
+          .modal('show');
+      });
     });
     function statusChangeCallback(response) {
       if (response.status === 'connected') {
@@ -110,7 +168,7 @@
 
     function initialize() {
       // var myLatlng = new google.maps.LatLng(40.713956, -74.006653);
-      var myLatlng = new google.maps.LatLng(-6.212097566030472, 106.84478759765625);
+      let myLatlng = new google.maps.LatLng(-6.212097566030472, 106.84478759765625);
       var myOptions = {
         zoom: 8,
         center: myLatlng,
@@ -141,13 +199,18 @@
 
     function sendLocation(lat,lng){
       // alert('lat='+lat+' lng='+lng)
+
       let token=localStorage.getItem("token")
       $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng, token:token}, function(data){
+
         $("#list-restaurant").empty();
         data.restaurants.forEach(restaurant => {
           $("#list-restaurant").append(`
             <div class="ui piled segments">
               <div class="ui segment">
+              <div class="ui small image">
+                <img src="${restaurant.restaurant.thumb}">
+              </div>
                 <h2>${restaurant.restaurant.name}</h2>
               </div>
               <div class="ui segments">
@@ -160,11 +223,22 @@
                 <div class="ui segment">
                   <p>Cost for two: ${restaurant.restaurant.average_cost_for_two}</p>
                 </div>
+                <div class="ui segment">
+                  Rating:
+                  <div class="ui accurate star widget">
+                    <div class="highlight" style="width: ${(restaurant.restaurant.user_rating.aggregate_rating / 5) * 100}%"></div>
+                  </div>
+                </div>
+                <div class="ui segment">
+                  <button class="ui right labeled icon button btn-detail" id="${restaurant.restaurant.id}">
+                    <i class="right arrow icon"></i>
+                    Detail
+                  </button>
+                </div>
               </div>
             </div>
             `);
         })
-        console.log(data);
       }).fail(function (error) {
         // console.log(token);
         if (token==null) {
