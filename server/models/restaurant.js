@@ -5,6 +5,9 @@ class Restaurant {
     let client = zomato.createClient({
       userKey: process.env.ZOMATOTOKEN,
     });
+    if (req.body.token=='') {
+      res.status(400).json(err);
+    }
     client.search({
       q: "Restaurant", //Search Keyword
       lat: req.body.lat, //latitude
@@ -15,7 +18,7 @@ class Restaurant {
       sort: "real_distance", //choose any one out of these available choices
       order: "asc" //	used with 'sort' parameter to define ascending(asc )/ descending(desc)
     }, function(err, result) {
-      if (!err && req.body.token!='') {
+      if (!err) {
         console.log(process.env.ZOMATOTOKEN);
         res.status(200).json(JSON.parse(result));
       } else {
