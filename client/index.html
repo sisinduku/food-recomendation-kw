@@ -107,7 +107,7 @@
       js.src = "//connect.facebook.net/id_ID/sdk.js#xfbml=1&version=v2.10&appId=127811911272909";
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
-        
+
     function initialize() {
       // var myLatlng = new google.maps.LatLng(40.713956, -74.006653);
       var myLatlng = new google.maps.LatLng(-6.212097566030472, 106.84478759765625);
@@ -141,7 +141,8 @@
 
     function sendLocation(lat,lng){
       // alert('lat='+lat+' lng='+lng)
-      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng}, function(data){
+      let token=localStorage.getItem("token")
+      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng, token:token}, function(data){
         $("#list-restaurant").empty();
         data.restaurants.forEach(restaurant => {
           $("#list-restaurant").append(`
@@ -164,7 +165,12 @@
             `);
         })
         console.log(data);
-      })
+      }).fail(function (error) {
+        // console.log(token);
+        if (token==null) {
+          alert('you dont have acces')
+        } else console.log(error);
+      });
     }
   </script>
 </html>
