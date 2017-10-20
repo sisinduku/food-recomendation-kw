@@ -106,7 +106,7 @@
           map: mapmini,
           title: response.name
         });
-        
+
         $('#' + event.target.id)
           .modal('show');
       });
@@ -199,8 +199,10 @@
 
     function sendLocation(lat,lng){
       // alert('lat='+lat+' lng='+lng)
-      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng}, function(data){
-        console.log(data);
+
+      let token=localStorage.getItem("token")
+      $.post( 'http://localhost:3000/api/restaurant/get_restaurant', {lat: lat,long: lng, token:token}, function(data){
+
         $("#list-restaurant").empty();
         data.restaurants.forEach(restaurant => {
           $("#list-restaurant").append(`
@@ -237,7 +239,12 @@
             </div>
             `);
         })
-      })
+      }).fail(function (error) {
+        // console.log(token);
+        if (token==null) {
+          alert('you dont have acces')
+        } else console.log(error);
+      });
     }
   </script>
 </html>

@@ -5,6 +5,9 @@ class Restaurant {
     let client = zomato.createClient({
       userKey: process.env.ZOMATOTOKEN,
     });
+    if (req.body.token=='') {
+      res.status(400).json(err);
+    }
     client.search({
       q: "Restaurant", //Search Keyword
       lat: req.body.lat, //latitude
